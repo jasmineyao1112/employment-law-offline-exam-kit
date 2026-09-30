@@ -1,0 +1,38 @@
+Employment Law 离线考试资料包
+===============================
+
+本资料包是纯离线关键词检索页面，不是本地 AI 或本地语言模型。
+考试过程中不会连接 ChatGPT，不会调用任何模型，也不需要网络。
+
+允许使用的前提
+--------------
+只有当老师及正式考试说明允许在 Examplify 之外打开本机文件和浏览器时，
+才可在考试中打开本资料包。
+
+如果 Examplify 采用 Secure 模式并禁止切换应用，本资料包只能用于考前复习，
+不得也无法绕过 Examplify 的限制。
+
+正式考试前必须完成
+------------------
+1. 将整个 Employment_Law_Offline_Exam_Kit 文件夹放在桌面或文稿文件夹。
+2. 双击 03_考前自检.command。
+3. 双击 02_打开离线速查.command，确认可以搜索：
+   employee、restraint of trade、WICA、contributory negligence、竞业限制。
+4. 断开 Wi-Fi 后重复打开和搜索测试。
+5. 使用与正式考试相同设置的 Examplify mock exam，确认是否允许切换到浏览器。
+6. 不要只移动 index.html。必须保留 data.js、assets 和 materials 等整个文件夹。
+
+考试当天
+--------
+如果考试规则允许访问本机资料，先打开 02_打开离线速查.command，
+再启动 Examplify。页面打开后不需要 Python、服务器或网络。
+
+资料优先级
+----------
+1. Masters 1 至 Masters 6 老师课件
+2. Revision Questions 与参考答案
+3. Employment Law 核心笔记
+4. 往届学生共享资料，仅作补充
+
+往届学生资料中存在速记错误和过度概括。遇到冲突时，以老师课件和
+Revision Questions 为准。

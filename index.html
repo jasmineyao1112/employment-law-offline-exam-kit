@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline Exam Reference</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --line: #e2e6eb;
+    --line-soft: #eef1f4;
+    --ink: #17191c;
+    --ink-2: #5b636e;
+    --ink-3: #8b939e;
+    --accent: #1d4ed8;
+    --accent-soft: #eaf0fe;
+    --mark: #ffe680;
+    --star: #e0a112;
+    --ok: #0f7a52;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #d3d8de; border-radius: 6px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .app { display: grid; grid-template-rows: 54px 1fr; height: 100vh; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 600; font-size: 14px; white-space: nowrap; letter-spacing: -0.1px; }
+  .brand span { color: var(--ink-3); font-weight: 400; }
+  .offline {
+    font-size: 11px; color: var(--ok); border: 1px solid #bfe3d1; background: #eefaf4;
+    padding: 1px 7px; border-radius: 20px; white-space: nowrap;
+  }
+  .searchwrap { flex: 1; position: relative; max-width: 720px; }
+  #q {
+    width: 100%; padding: 8px 12px 8px 32px; border: 1px solid var(--line);
+    border-radius: 8px; background: #fbfcfd; outline: none;
+  }
+  #q:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .mag { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-3); }
+  select#src { padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; }
+  .kbd { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+  .kbd b { font-weight: 500; color: var(--ink-2); background: #f0f2f5; border: 1px solid var(--line);
+    border-radius: 4px; padding: 0 4px; }
+
+  /* ---------- layout ---------- */
+  .body { display: grid; grid-template-columns: 264px minmax(360px, 1fr) 430px; overflow: hidden; }
+  .pane { overflow: auto; background: var(--bg); }
+  #left { background: var(--panel); border-right: 1px solid var(--line); }
+  #right { background: var(--panel); border-left: 1px solid var(--line); }
+
+  /* ---------- sidebar ---------- */
+  .grp { padding: 12px 8px 4px; }
+  .grp + .grp { border-top: 1px solid var(--line-soft); }
+  .grp h4 {
+    margin: 0 0 6px; padding: 0 8px; font-size: 11px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .item {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    padding: 6px 8px; border: 0; border-radius: 6px; background: none; cursor: pointer;
+    color: var(--ink); font-size: 13px; line-height: 1.35;
+  }
+  .item:hover { background: #f2f4f7; }
+  .item.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .item .n { margin-left: auto; color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .item .caret { color: var(--ink-3); font-size: 10px; width: 10px; }
+  .sub { margin: 2px 0 4px 18px; border-left: 1px solid var(--line); padding-left: 6px; }
+  .sub .item { font-size: 12.5px; padding: 4px 8px; color: var(--ink-2); }
+  .sub .item .pn { color: var(--ink-3); font-size: 11px; min-width: 22px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- results ---------- */
+  #mid { padding: 14px 16px 40px; }
+  .headline { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .headline h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .headline .meta { color: var(--ink-3); font-size: 12px; }
+  .hint {
+    background: #fff8e6; border: 1px solid #f0dfae; color: #7a5c12;
+    padding: 7px 10px; border-radius: 8px; font-size: 12.5px; margin-bottom: 10px;
+  }
+  .res {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 13px; margin-bottom: 8px; cursor: pointer; transition: border-color .1s;
+  }
+  .res:hover { border-color: #c7d2e8; }
+  .res.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .res .top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .chip {
+    font-size: 11px; padding: 1px 7px; border-radius: 20px; background: #eef1f5;
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .chip.g { background: #eaf0fe; color: var(--accent); }
+  .res .ttl { font-weight: 600; font-size: 13.5px; line-height: 1.35; }
+  .res .snip { color: var(--ink-2); font-size: 13px; margin-top: 3px; }
+  .res .cn {
+    margin-top: 5px; font-size: 12.5px; line-height: 1.5; color: #3d5a8a;
+    background: #f2f6fd; border-left: 2px solid #b9cbec; border-radius: 0 6px 6px 0; padding: 4px 8px;
+  }
+  .cnbox {
+    background: #f2f6fd; border: 1px solid #d5e0f4; border-radius: 10px;
+    padding: 10px 12px; margin-top: 12px;
+  }
+  .cnbox p, .cnbox li { color: #2f4468; font-size: 13px; margin: 4px 0; }
+  .cnbox ul { margin: 6px 0; padding-left: 18px; }
+  .cnhead {
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: #6b7fa6; font-weight: 600; margin-bottom: 3px;
+  }
+  .qzh {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+    margin: 16px 0 6px; font-weight: 600;
+  }
+  .res .star { color: var(--star); font-size: 13px; }
+  mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1px; }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-soft);
+    font-size: 12.5px; vertical-align: top; }
+  th { background: #fafbfc; font-weight: 600; color: var(--ink-2); font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: #f7f9fc; }
+  td.v { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.c { color: var(--ink-2); }
+  td.s { color: var(--ink-3); white-space: nowrap; }
+
+  /* ---------- detail ---------- */
+  #right .inner { padding: 14px 16px 40px; }
+  .dmeta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .dtitle { font-size: 16px; font-weight: 600; line-height: 1.35; margin: 0 0 10px; }
+  .dbody { font-size: 13.5px; color: #23262b; }
+  .dbody ul { margin: 0; padding-left: 18px; }
+  .dbody li { margin-bottom: 6px; }
+  .dnav { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 5px 10px;
+    cursor: pointer; font-size: 12.5px; color: var(--ink-2);
+  }
+  .btn:hover { background: #f4f6f9; color: var(--ink); border-color: #cfd6de; }
+  .btn.p { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.p:hover { background: #1740b8; color: #fff; }
+  .btn.on { background: #fff6e0; border-color: #e8c877; color: #8a6410; }
+  .shot { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fafbfc; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot .cap { padding: 5px 9px; font-size: 11.5px; color: var(--ink-3); border-top: 1px solid var(--line-soft); }
+  .note { margin-top: 12px; }
+  .note textarea {
+    width: 100%; min-height: 68px; border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px; resize: vertical; font-size: 13px; background: #fffdf6; outline: none;
+  }
+  .note textarea:focus { border-color: var(--accent); }
+  .empty { color: var(--ink-3); padding: 40px 10px; text-align: center; font-size: 13px; }
+
+  /* ---------- welcome ---------- */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .card p, .card li { color: var(--ink-2); font-size: 13px; margin: 4px 0; }
+  .card ul { margin: 6px 0; padding-left: 18px; }
+  .card code { background: #f2f4f7; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 12px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill { border: 1px solid var(--line); background: #fbfcfd; border-radius: 20px; padding: 3px 10px;
+    font-size: 12.5px; cursor: pointer; color: var(--ink-2); }
+  .pill:hover { background: var(--accent-soft); border-color: #c3d4f7; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">Offline Exam Kit <span>&middot; local reference</span></div>
+    <span class="offline">offline</span>
+    <div class="searchwrap">
+      <svg class="mag" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+        <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path>
+      </svg>
+      <input id="q" autocomplete="off" spellcheck="false" placeholder="Search keywords, phrases, sections, abbreviations or 中文关键词...">
+    </div>
+    <select id="src"></select>
+    <span class="kbd"><b>Cmd K</b> search &nbsp; <b>&uarr;&darr;</b> move &nbsp; <b>Enter</b> open</span>
+  </header>
+
+  <div class="body">
+    <aside class="pane" id="left"></aside>
+    <section class="pane" id="mid"></section>
+    <aside class="pane" id="right"></aside>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.EXAM_DATA;
+  var cards = D.cards, SRC = D.meta.sources, SYN = D.syn || {};
+
+  /* ----------------------------- tokenising ----------------------------- */
+  var STOP = ("a an the of to and or in on at by for from with without is are was were be been being " +
+    "this that these those it its as if not no nor but so than then there here can may will would " +
+    "shall should could do does did you your we our they their he she him her who whom which what " +
+    "when where how why any all some more most other another each both few many much per via into " +
+    "about over under above below up out off only also such same s t don ve ll re m d").split(" ");
+  var STOPSET = {}; STOP.forEach(function (w) { STOPSET[w] = 1; });
+  var CJK = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
+
+  function words(s) {
+    var out = [];
+    (s.toLowerCase().match(/[a-z0-9]+|[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+/g) || []).forEach(function (w) {
+      if (CJK.test(w)) {
+        if (w.length <= 3) { out.push(w); return; }
+        for (var i = 0; i < w.length - 1; i++) out.push(w.substr(i, 2));
+      } else if (w.length > 1) out.push(w);
+    });
+    return out;
+  }
+
+  /* ----------------------------- index build ----------------------------- */
+  var INV = new Map(), DLEN = [], DTXT = [];
+  cards.forEach(function (c, i) {
+    // the Chinese annotation layer is indexed too, so 年假 finds the annual-leave slides
+    var t = (c.t || "") + " " + (c.t || "") + " " + (c.sec || "") + " " + (c.txt || "") +
+            (c.cnt ? " " + c.cnt : "");
+    DTXT.push(t.toLowerCase());
+    var ws = words(t);
+    DLEN.push(ws.length);
+    var tf = new Map();
+    ws.forEach(function (w) { tf.set(w, (tf.get(w) || 0) + 1); });
+    tf.forEach(function (n, w) {
+      var p = INV.get(w); if (!p) { p = new Map(); INV.set(w, p); }
+      p.set(i, n);
+    });
+  });
+  var AVG = DLEN.reduce(function (a, b) { return a + b; }, 0) / Math.max(1, DLEN.length);
+  var VOCAB = Array.from(INV.keys());
+  var K1 = 1.5, B = 0.75;
+
+  // BM25 rewards short documents. That pushes "Some International Comparisons"
+  // above the real annual-leave slide when you search 年假, so Chinese terms get
+  // a flat, length-independent bonus - bigger when the English term is in the title.
+  var CNB = new Map();
+  cards.forEach(function (c, i) {
+    (c.cnh || []).forEach(function (e) {
+      var cn = e[0], inTitle = e[2];
+      var w = inTitle ? 2.2 : 0.5;
+      words(cn).forEach(function (t) {
+        if (!CJK.test(t)) return;
+        var m = CNB.get(t); if (!m) { m = new Map(); CNB.set(t, m); }
+        m.set(i, (m.get(i) || 0) + w);
+      });
+    });
+  });
+
+  function bm25(tf, df, dl) {
+    var idf = Math.log(1 + (cards.length - df + 0.5) / (df + 0.5));
+    return idf * (tf * (K1 + 1)) / (tf + K1 * (1 - B + B * (dl / AVG)));
+  }
+
+  function edit1(a, b) {
+    if (Math.abs(a.length - b.length) > 1) return false;
+    var i = 0, j = 0, d = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; }
+      else { d++; if (d > 1) return false;
+        if (a.length === b.length) { i++; j++; } else if (a.length > b.length) i++; else j++; }
+    }
+    return true;
+  }
+
+  /* ----------------------------- query ----------------------------- */
+  function parse(q) {
+    var phrases = [];
+    q = q.replace(/"([^"]+)"/g, function (m, p) { phrases.push(p.trim().toLowerCase()); return " "; });
+    var terms = [], ex = [];
+    q.split(/\s+/).forEach(function (p) {
+      if (!p) return;
+      if (p[0] === "-" && p.length > 1) ex.push(p.slice(1).toLowerCase());
+      else terms.push(p.toLowerCase());
+    });
+    return { terms: terms, phrases: phrases, ex: ex };
+  }
+
+  function variants(term) {
+    // the index tokens this query term should look for, with weights
+    var out = [], seen = {};
+    var COMMON = cards.length * 0.25;        // a token this common carries no signal
+    function add(tok, w) { if (!seen[tok]) { seen[tok] = 1; out.push({ tok: tok, w: w }); } }
+    function expand(sw, w) {
+      var p = INV.get(sw);
+      if (!p || p.size > COMMON) return;
+      add(sw, w);
+    }
+
+    words(term).forEach(function (w) {
+      add(w, 1);
+      var dfW = INV.has(w) ? INV.get(w).size : 0;
+      if (dfW < 8) {                       // word is rare or missing -> try prefixes
+        var pre = [];
+        for (var i = 0; i < VOCAB.length; i++) {
+          var v = VOCAB[i];
+          if (v.length > w.length && v.lastIndexOf(w, 0) === 0 && !STOPSET[v]) pre.push(v);
+        }
+        pre.sort(function (a, b) { return INV.get(b).size - INV.get(a).size; });
+        pre.slice(0, 12).forEach(function (v) { expand(v, 0.7); });
+      }
+      (SYN[w] || []).forEach(function (syn) {   // abbreviations & equivalents
+        words(syn).forEach(function (sw) { expand(sw, 0.6); });
+      });
+    });
+    (SYN[term.toLowerCase()] || []).forEach(function (syn) {
+      words(syn).forEach(function (sw) { expand(sw, 0.6); });
+    });
+
+    var anyReal = out.some(function (v) { return INV.has(v.tok); });
+    if (!anyReal && term.length >= 4) {   // nothing at all -> tolerate a typo
+      var w2 = words(term)[0] || term.toLowerCase();
+      for (var j = 0; j < VOCAB.length; j++) {
+        var v2 = VOCAB[j];
+        if (v2[0] !== w2[0]) continue;
+        if (edit1(v2, w2)) add(v2, 0.45);
+      }
+    }
+    return out;
+  }
+
+  function search(rawQ, srcFilter) {
+    var t0 = performance.now();
+    var pq = parse(rawQ);
+    var scores = new Map(), hitToks = new Map();
+
+    var unmatched = 0;
+    pq.terms.forEach(function (term) {
+      var vs = variants(term);
+      if (!vs.length) { unmatched++; return; }
+      var local = new Map();
+      vs.forEach(function (v) {
+        var p = INV.get(v.tok); if (!p) return;
+        var df = p.size;
+        p.forEach(function (tf, di) {
+          if (srcFilter != null && cards[di].s !== srcFilter) return;
+          var s = bm25(tf, df, DLEN[di]) * v.w;
+          local.set(di, (local.get(di) || 0) + s);
+          var hs = hitToks.get(di); if (!hs) { hs = []; hitToks.set(di, hs); }
+          if (hs.indexOf(v.tok) < 0) hs.push(v.tok);
+        });
+      });
+      if (!local.size) { unmatched++; return; }
+      if (!scores.size) { local.forEach(function (v, k) { scores.set(k, v); }); }
+      else {
+        var next = new Map();
+        scores.forEach(function (v, k) { if (local.has(k)) next.set(k, v + local.get(k)); });
+        scores = next;
+      }
+    });
+
+    var relaxed = false;
+    if (!scores.size && pq.terms.length > 1) {
+      relaxed = true;
+      pq.terms.forEach(function (term) {
+        variants(term).forEach(function (v) {
+          var p = INV.get(v.tok); if (!p) return;
+          var df = p.size;
+          p.forEach(function (tf, di) {
+            if (srcFilter != null && cards[di].s !== srcFilter) return;
+            scores.set(di, (scores.get(di) || 0) + bm25(tf, df, DLEN[di]) * v.w * 0.5);
+            var hs = hitToks.get(di); if (!hs) { hs = []; hitToks.set(di, hs); }
+            if (hs.indexOf(v.tok) < 0) hs.push(v.tok);
+          });
+        });
+      });
+    }
+
+    // quoted phrases: seed the result set when no scored terms produced anything
+    if (pq.phrases.length) {
+      if (!scores.size) {
+        for (var d = 0; d < DTXT.length; d++) {
+          if (srcFilter != null && cards[d].s !== srcFilter) continue;
+          var all = true;
+          for (var q = 0; q < pq.phrases.length; q++) if (DTXT[d].indexOf(pq.phrases[q]) < 0) all = false;
+          if (all) scores.set(d, 2);
+        }
+      } else {
+        scores.forEach(function (v, di) {
+          for (var q2 = 0; q2 < pq.phrases.length; q2++) {
+            if (DTXT[di].indexOf(pq.phrases[q2]) < 0) { scores.delete(di); return; }
+          }
+          scores.set(di, v + 3);
+        });
+      }
+    }
+
+    // Chinese bonus: flat, so short slides do not beat the slide that is actually about it
+    pq.terms.forEach(function (term) {
+      words(term).forEach(function (t) {
+        var m = CNB.get(t); if (!m) return;
+        m.forEach(function (w, di) {
+          if (srcFilter != null && cards[di].s !== srcFilter) return;
+          if (scores.has(di)) scores.set(di, scores.get(di) + w);
+        });
+      });
+    });
+
+    // title bump: a keyword in the slide title is a strong signal
+    scores.forEach(function (v, di) {
+      var t = (cards[di].t || "").toLowerCase();
+      pq.terms.forEach(function (term) { if (t.indexOf(term) >= 0) scores.set(di, v * 1.6 + 1.2); });
+    });
+
+    var out = [];
+    scores.forEach(function (v, di) {
+      var txt = DTXT[di];
+      var ok = true;
+      for (var i = 0; i < pq.phrases.length; i++) if (txt.indexOf(pq.phrases[i]) < 0) ok = false;
+      for (var j = 0; j < pq.ex.length; j++) if (txt.indexOf(pq.ex[j]) >= 0) ok = false;
+      // cjk substring check
+      if (ok && CJK.test(rawQ)) {
+        var probe = rawQ.replace(/["\-]/g, " ").trim();
+        if (probe && txt.indexOf(probe.toLowerCase()) < 0) ok = false;
+      }
+      if (ok) out.push({ i: di, s: v });
+    });
+    out.sort(function (a, b) { return b.s - a.s; });
+    return { list: out.slice(0, 250), ms: Math.round((performance.now() - t0) * 10) / 10, relaxed: relaxed };
+  }
+
+  /* ----------------------------- state ----------------------------- */
+  var LS = "offline_exam_kit_v1";
+  var mem = { star: {}, note: {} };
+  function load() {
+    try {
+      var raw = localStorage.getItem(LS);
+      if (raw) { var o = JSON.parse(raw); mem.star = o.star || {}; mem.note = o.note || {}; }
+    } catch (e) { /* file:// may block storage; fall back to memory */ }
+  }
+  function save() {
+    try { localStorage.setItem(LS, JSON.stringify(mem)); } catch (e) {}
+  }
+  load();
+
+  var S = { q: "", view: "home", src: -1, open: null, results: [], sel: 0, cur: null,
+            quick: null, expanded: {}, qz: null, qzOpen: {} };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var mid = $("mid"), left = $("left"), right = $("right");
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function shortSrc(i) { return (SRC[i] && SRC[i].label) || ""; }
+  function semName(i) {
+    var l = shortSrc(i);
+    return l || (i < 0 ? "All sources" : "Source " + (i + 1));
+  }
+  function srcShort(i) {
+    var l = shortSrc(i);
+    return l.length > 18 ? l.slice(0, 17) + "\u2026" : l;
+  }
+
+  /* ----------------------------- sidebar ----------------------------- */
+  function renderLeft() {
+    var starN = Object.keys(mem.star).length, noteN = Object.keys(mem.note).length;
+    var h = '<div class="grp"><h4>Sources</h4>';
+    SRC.forEach(function (s, i) {
+      var open = !!S.expanded[i];
+      h += '<button class="item' + (S.view === "browse" && S.src === i ? " on" : "") + '" data-act="src" data-i="' + i + '">' +
+        '<span class="caret">' + (open ? "\u25be" : "\u25b8") + '</span>' +
+        '<span>' + esc(srcShort(i)) + '</span><span class="n">' + s.n + '</span></button>';
+      if (open) {
+        h += '<div class="sub">';
+        cards.forEach(function (c) {
+          if (c.s !== i) return;
+          h += '<button class="item" data-act="card" data-i="' + c.id + '">' +
+            '<span class="pn">' + (c.p ? c.p : "\u2013") + '</span>' +
+            '<span>' + esc((c.t || "").slice(0, 46)) + '</span></button>';
+        });
+        h += '</div>';
+      }
+    });
+    h += '</div><div class="grp"><h4>Quick reference</h4>';
+    h += '<button class="item' + (S.view === "quick" && S.quick === "money" ? " on" : "") + '" data-act="quick" data-k="money">Money &amp; thresholds<span class="n">' + D.quick.money.length + '</span></button>';
+    h += '<button class="item' + (S.view === "quick" && S.quick === "time" ? " on" : "") + '" data-act="quick" data-k="time">Time limits &amp; periods<span class="n">' + D.quick.time.length + '</span></button>';
+    h += '<button class="item' + (S.view === "quick" && S.quick === "sect" ? " on" : "") + '" data-act="quick" data-k="sect">Statutory sections<span class="n">' + D.quick.sect.length + '</span></button>';
+    h += '</div><div class="grp"><h4>Practice</h4>';
+    h += '<button class="item' + (S.view === "quiz" ? " on" : "") + '" data-act="quiz">Questions &amp; answers<span class="n">' + (D.quiz || []).length + '</span></button>';
+    h += '<button class="item' + (S.view === "gloss" ? " on" : "") + '" data-act="gloss">Chinese glossary<span class="n">' + (D.cn || []).length + '</span></button>';
+    h += '</div><div class="grp"><h4>Indexes</h4>';
+    h += '<button class="item' + (S.view === "cases" ? " on" : "") + '" data-act="cases">Case index<span class="n">' + D.cases.length + '</span></button>';
+    h += '<button class="item' + (S.view === "abbrev" ? " on" : "") + '" data-act="abbrev">Abbreviations<span class="n">' + Object.keys(D.abbrev).length + '</span></button>';
+    h += '</div><div class="grp"><h4>Mine</h4>';
+    h += '<button class="item' + (S.view === "star" ? " on" : "") + '" data-act="star">Starred<span class="n">' + starN + '</span></button>';
+    h += '<button class="item' + (S.view === "notes" ? " on" : "") + '" data-act="notes">My notes<span class="n">' + noteN + '</span></button>';
+    h += '</div><div class="grp"><h4>Data</h4>';
+    h += '<button class="item" data-act="export">Export stars &amp; notes</button>';
+    h += '<button class="item" data-act="import">Import from file</button>';
+    h += '<input type="file" id="fileimp" accept="application/json" style="display:none">';
+    h += '</div>';
+    left.innerHTML = h;
+    var fi = $("fileimp");
+    if (fi) fi.onchange = function () {
+      var f = fi.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () {
+        try {
+          var o = JSON.parse(r.result);
+          mem.star = o.star || {}; mem.note = o.note || {}; save(); renderLeft(); renderMid();
+        } catch (e) { alert("That file could not be read."); }
+      };
+      r.readAsText(f);
+    };
+  }
+
+  /* ----------------------------- main pane ----------------------------- */
+  function snippet(txt, toks) {
+    var low = txt.toLowerCase(), pos = -1;
+    for (var i = 0; i < toks.length; i++) {
+      var p = low.indexOf(toks[i]);
+      if (p >= 0 && (pos < 0 || p < pos)) pos = p;
+    }
+    if (pos < 0) pos = 0;
+    var a = Math.max(0, pos - 90), b = Math.min(txt.length, a + 260);
+    var s = txt.slice(a, b);
+    return (a > 0 ? "\u2026 " : "") + s + (b < txt.length ? " \u2026" : "");
+  }
+  function hl(text, toks) {
+    var pat = toks.filter(function (t) { return t.length > 1; })
+      .sort(function (a, b) { return b.length - a.length; })
+      .map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
+    if (!pat.length) return esc(text);
+    var re = new RegExp("(" + pat.join("|") + ")", "gi");
+    return esc(text).replace(re, "<mark>$1</mark>");
+  }
+
+  function resultCard(c, di, toks) {
+    var starred = mem.star[c.id];
+    return '<div class="res' + (S.open === c.id ? " on" : "") + '" data-act="card" data-i="' + c.id + '">' +
+      '<div class="top">' +
+        '<span class="chip g">' + esc(srcShort(c.s)) + '</span>' +
+        (c.p ? '<span class="chip">slide ' + c.p + '</span>' : (c.sec ? '<span class="chip">' + esc(c.sec.slice(0, 24)) + '</span>' : '')) +
+        (starred ? '<span class="star">\u2605</span>' : '') +
+      '</div>' +
+      '<div class="ttl">' + hl((c.t || "").slice(0, 120), toks) + '</div>' +
+      '<div class="snip">' + hl(snippet(c.txt || "", toks), toks) + '</div>' +
+      cnLine(c) +
+      '</div>';
+  }
+
+  function cnLine(c) {
+    if (!c.cn || !c.cn.length) return "";
+    var n = c.cn.slice(0, 2).map(function (s) { return esc(s); }).join(" ").slice(0, 150);
+    return '<div class="cn">' + n + '</div>';
+  }
+
+  function renderMid() {
+    if (S.view === "home") return home();
+    if (S.view === "results") {
+      var toks = S.q.toLowerCase().split(/\s+/).filter(function (t) { return t && t[0] !== "-"; });
+      var h = '<div class="headline"><h2>' + S.results.length + ' result' + (S.results.length === 1 ? "" : "s") + '</h2>' +
+        '<span class="meta">' + esc(S.q) + ' &middot; ' + S.ms + ' ms' + (S.src >= 0 ? ' &middot; ' + esc(srcShort(S.src)) : '') + '</span></div>';
+      if (S.relaxed) h += '<div class="hint">No slide matched every word. Showing closest partial matches &mdash; try fewer or different words.</div>';
+      if (!S.results.length) h += '<div class="empty">Nothing found. Try a shorter word, an abbreviation, or browse the sources on the left.</div>';
+      S.results.forEach(function (r) { h += resultCard(cards[r.i], r.i, toks); });
+      mid.innerHTML = h;
+      mid.scrollTop = 0;
+      return;
+    }
+    if (S.view === "browse") {
+      var h2 = '<div class="headline"><h2>' + esc(shortSrc(S.src)) + '</h2><span class="meta">' +
+        SRC[S.src].n + ' cards &middot; ' + esc(SRC[S.src].file) + '</span></div>';
+      if (D.sem_cn && D.sem_cn[S.src]) h2 += '<div class="card cnbox"><p>' + esc(D.sem_cn[S.src]) + '</p></div>';
+      cards.forEach(function (c) {
+        if (c.s !== S.src) return;
+        h2 += '<div class="res' + (S.open === c.id ? " on" : "") + '" data-act="card" data-i="' + c.id + '">' +
+          '<div class="top"><span class="chip g">' + esc(srcShort(c.s)) + '</span>' +
+          (c.p ? '<span class="chip">slide ' + c.p + '</span>' : '') +
+          (mem.star[c.id] ? '<span class="star">\u2605</span>' : '') + '</div>' +
+          '<div class="ttl">' + esc((c.t || "").slice(0, 120)) + '</div>' +
+          '<div class="snip">' + esc((c.txt || "").slice(0, 170)) + '</div>' + cnLine(c) + '</div>';
+      });
+      mid.innerHTML = h2; mid.scrollTop = 0; return;
+    }
+    if (S.view === "quick") {
+      var rows = D.quick[S.quick] || [];
+      var title = { money: "Money &amp; thresholds", time: "Time limits &amp; periods", sect: "Statutory sections" }[S.quick];
+      var h3 = '<div class="headline"><h2>' + title + '</h2><span class="meta">' + rows.length + ' entries</span>' +
+        '<input id="qf" placeholder="filter..." style="margin-left:auto;padding:5px 9px;border:1px solid var(--line);border-radius:7px;width:180px"></div>' +
+        '<div class="hint">Always read the context column &mdash; the same number can appear in a hypothetical example.</div>' +
+        '<table><thead><tr><th>Value</th><th>Context</th><th>Source</th></tr></thead><tbody id="qtbody">';
+      rows.forEach(function (r, k) {
+        h3 += '<tr data-act="card" data-i="' + r.i + '" data-k="' + k + '"><td class="v">' + esc(r.v) + '</td>' +
+          '<td class="c">' + esc(r.c) + '</td><td class="s">' + esc(srcShort(cards[r.i].s)) + (cards[r.i].p ? ' ' + cards[r.i].p : '') + '</td></tr>';
+      });
+      h3 += '</tbody></table>';
+      mid.innerHTML = h3;
+      var f = $("qf");
+      if (f) f.oninput = function () {
+        var v = f.value.toLowerCase();
+        Array.prototype.forEach.call($("qtbody").rows, function (tr) {
+          tr.style.display = tr.textContent.toLowerCase().indexOf(v) >= 0 ? "" : "none";
+        });
+      };
+      return;
+    }
+    if (S.view === "quiz") {
+      var QZ = D.quiz || [];
+      var groups = {};
+      QZ.forEach(function (q) { (groups[q.sem] = groups[q.sem] || []).push(q); });
+      var hq = '<div class="headline"><h2>Questions &amp; answers</h2><span class="meta">' + QZ.length +
+        ' questions from the decks and your revision notes</span>' +
+        '<input id="qzf" placeholder="filter..." style="margin-left:auto;padding:5px 9px;border:1px solid var(--line);border-radius:7px;width:180px"></div>' +
+        '<div class="hint">Answers are hidden until you click <b>Show answer</b> &mdash; try it yourself first. Every answer comes from the material, with the slide shown underneath.</div>';
+      Object.keys(groups).sort().forEach(function (g) {
+        hq += '<h3 class="qzh">' + esc(semName(+g)) + '</h3>';
+        groups[g].forEach(function (q) {
+          hq += '<div class="res qz' + (S.qz === q.id ? " on" : "") + '" data-act="qz" data-i="' + q.id + '">' +
+            '<div class="top"><span class="chip g">' + esc(q.kind) + '</span>' +
+            '<span class="chip">' + esc(q.src) + '</span></div>' +
+            '<div class="ttl">' + esc(q.q.slice(0, 150)) + '</div>' +
+            '<div class="cn">' + esc(q.qcn.slice(0, 130)) + '</div></div>';
+        });
+      });
+      mid.innerHTML = hq;
+      var qf = $("qzf");
+      if (qf) qf.oninput = function () {
+        var v = qf.value.toLowerCase();
+        Array.prototype.forEach.call(mid.querySelectorAll(".res.qz"), function (r) {
+          r.style.display = r.textContent.toLowerCase().indexOf(v) >= 0 ? "" : "none";
+        });
+      };
+      return;
+    }
+    if (S.view === "gloss") {
+      var G = D.cn || [];
+      var hg = '<div class="headline"><h2>Chinese glossary</h2><span class="meta">' + G.length +
+        ' terms &middot; click a row to find the slides</span>' +
+        '<input id="gf" placeholder="filter (English or 中文)..." style="margin-left:auto;padding:5px 9px;border:1px solid var(--line);border-radius:7px;width:210px"></div>';
+      var bySem = {};
+      G.forEach(function (t) { (bySem[t.s] = bySem[t.s] || []).push(t); });
+      Object.keys(bySem).sort().forEach(function (g) {
+        hg += '<h3 class="qzh">' + esc(semName(+g)) + '</h3><table><thead><tr>' +
+          '<th style="width:230px">English</th><th>中文</th></tr></thead><tbody>';
+        bySem[g].forEach(function (t) {
+          hg += '<tr data-act="term" data-t="' + esc(t.e) + '"><td class="v">' + esc(t.e) + '</td>' +
+            '<td class="c">' + esc(t.c) + '</td></tr>';
+        });
+        hg += '</tbody></table>';
+      });
+      mid.innerHTML = hg;
+      var gfi = $("gf");
+      if (gfi) gfi.oninput = function () {
+        var v = gfi.value.toLowerCase();
+        Array.prototype.forEach.call(mid.querySelectorAll("tbody tr"), function (tr) {
+          tr.style.display = tr.textContent.toLowerCase().indexOf(v) >= 0 ? "" : "none";
+        });
+      };
+      return;
+    }
+    if (S.view === "cases") {
+      var h4 = '<div class="headline"><h2>Case index</h2><span class="meta">' + D.cases.length + ' cases</span></div><table>' +
+        '<thead><tr><th>Case</th><th>Context</th><th>Source</th></tr></thead><tbody>';
+      D.cases.forEach(function (r) {
+        h4 += '<tr data-act="card" data-i="' + r.i + '"><td class="v">' + esc(r.v) + '</td><td class="c">' + esc(r.c) + '</td>' +
+          '<td class="s">' + esc(srcShort(cards[r.i].s)) + (cards[r.i].p ? ' ' + cards[r.i].p : '') + '</td></tr>';
+      });
+      mid.innerHTML = h4 + '</tbody></table>'; return;
+    }
+    if (S.view === "abbrev") {
+      var keys = Object.keys(D.abbrev).sort();
+      var h5 = '<div class="headline"><h2>Abbreviations</h2><span class="meta">found in the material</span></div><table>' +
+        '<thead><tr><th>Short</th><th>Stands for</th></tr></thead><tbody>';
+      keys.forEach(function (k) {
+        h5 += '<tr><td class="v">' + esc(k.toUpperCase()) + '</td><td class="c">' + esc(D.abbrev[k].join(", ")) + '</td></tr>';
+      });
+      h5 += '</tbody></table>';
+      h5 += '<div class="card" style="margin-top:12px"><h3>Search aliases</h3><p>These also work when you type them in the search box:</p><div class="pills">';
+      Object.keys(SYN).sort().slice(0, 30).forEach(function (t) {
+        h5 += '<span class="pill" data-act="term" data-t="' + esc(t) + '">' + esc(t) + '</span>';
+      });
+      mid.innerHTML = h5 + '</div></div>'; return;
+    }
+    if (S.view === "star" || S.view === "notes") {
+      var isStar = S.view === "star", bag = isStar ? mem.star : mem.note;
+      var ids = Object.keys(bag).map(Number).filter(function (i) { return cards[i]; });
+      var h6 = '<div class="headline"><h2>' + (isStar ? "Starred" : "My notes") + '</h2><span class="meta">' + ids.length + '</span></div>';
+      if (!ids.length) {
+        h6 += '<div class="empty">' + (isStar ? "Nothing starred yet. Open any slide and hit \u2605 Star." : "No notes yet. Open any slide and write in the note box.") + '</div>';
+      }
+      ids.forEach(function (i) {
+        var c = cards[i];
+        h6 += '<div class="res" data-act="card" data-i="' + i + '">' +
+          '<div class="top"><span class="chip g">' + esc(srcShort(c.s)) + '</span>' +
+          (c.p ? '<span class="chip">slide ' + c.p + '</span>' : '') + '</div>' +
+          '<div class="ttl">' + esc((c.t || "").slice(0, 110)) + '</div>' +
+          (isStar ? '<div class="snip">' + esc((c.txt || "").slice(0, 170)) + '</div>' + cnLine(c)
+                  : '<div class="snip">' + esc(bag[i]) + '</div>') + '</div>';
+      });
+      mid.innerHTML = h6; return;
+    }
+  }
+
+  function home() {
+    var total = cards.length;
+    var h = '<div class="card"><h3>' + total + ' cards indexed &middot; built ' + esc(D.meta.built) + '</h3>' +
+      '<p>Everything below runs from this folder. No network, no server &mdash; just double-click <code>index.html</code> in any browser.</p>' +
+      '<ul><li>Type a keyword, an abbreviation, or part of a word. Results are ranked by relevance, not by position.</li>' +
+      '<li><code>"exact phrase"</code> keeps a phrase together &middot; <code>-word</code> excludes it &middot; several words are combined (AND).</li>' +
+      '<li>Click a result to see the full card, its original page image, and any verified annotations on the right.</li>' +
+      '<li>Chinese source text is searchable directly. Add bilingual terms in <code>annotations.py</code> if you want Chinese queries to find English slides.</li>' +
+      '<li><b>Questions &amp; answers</b> in the sidebar holds ' + (D.quiz || []).length + ' past questions with model answers. Answers stay hidden until you ask for them.</li>' +
+      '<li>Starred cards and your notes are saved in this browser &mdash; use Export in the sidebar to back them up.</li></ul>' +
+      '<p style="margin-top:10px">Full walkthrough in <code>README_中文.txt</code> next to this file. Added new material? Rebuild with <code>01_构建考试资料库.command</code>.</p></div>';
+    h += '<div class="card"><h3>Try</h3><div class="pills">';
+    ["section", "notice", "contract", "dismissal", "leave", "compensation"].forEach(function (t) {
+      h += '<span class="pill" data-act="term" data-t="' + esc(t) + '">' + esc(t) + '</span>';
+    });
+    h += '</div></div>';
+    h += '<div class="card"><h3>Sources</h3><ul>';
+    SRC.forEach(function (s, i) { h += '<li>' + esc(s.label) + ' &mdash; ' + s.n + ' cards</li>'; });
+    h += '</ul></div>';
+    mid.innerHTML = h;
+  }
+
+  /* ----------------------------- detail pane ----------------------------- */
+  function renderRight() {
+    if (S.qz != null && S.view === "quiz") return renderQuiz();
+    var c = S.open == null ? null : cards[S.open];
+    if (!c) {
+      right.innerHTML = '<div class="inner"><div class="empty">Pick a card to read it here.<br><br>' +
+        'Tip: press <b>Cmd/Ctrl + K</b> to jump to the search box.</div></div>';
+      return;
+    }
+    var starred = !!mem.star[c.id];
+    var h = '<div class="inner">';
+    h += '<div class="dmeta"><span class="chip g">' + esc(shortSrc(c.s)) + '</span>' +
+      (c.p ? '<span class="chip">slide ' + c.p + '</span>' : '') +
+      (c.sec ? '<span class="chip">' + esc(c.sec) + '</span>' : '') + '</div>';
+    h += '<h1 class="dtitle">' + esc(c.t || "") + '</h1>';
+    h += '<div class="dbody">';
+    var items = (c.it && c.it.length) ? c.it : [c.txt];
+    if (items.length > 1) {
+      h += '<ul>'; items.forEach(function (t) { h += '<li>' + esc(t) + '</li>'; }); h += '</ul>';
+    } else h += esc(items[0] || "");
+    h += '</div>';
+    if (c.cn && c.cn.length) {
+      h += '<div class="cnbox"><div class="cnhead">中文注释</div><ul>';
+      c.cn.forEach(function (s) { h += '<li>' + esc(s) + '</li>'; });
+      h += '</ul></div>';
+    }
+    h += '<div class="dnav">' +
+      '<button class="btn p" data-act="copy">Copy text</button>' +
+      '<button class="btn' + (starred ? " on" : "") + '" data-act="toggle-star">' + (starred ? "\u2605 Starred" : "\u2606 Star") + '</button>' +
+      '<button class="btn" data-act="prev">\u2190 Prev</button>' +
+      '<button class="btn" data-act="next">Next \u2192</button>' +
+      '</div>';
+    if (c.img) {
+      h += '<div class="shot"><img src="' + esc(c.img) + '" loading="lazy" alt="slide image">' +
+        '<div class="cap">Original slide &mdash; ' + esc(shortSrc(c.s)) + (c.p ? ', page ' + c.p : '') + '</div></div>';
+    }
+    if (c.imgs && c.imgs.length) {
+      c.imgs.forEach(function (p) { h += '<div class="shot"><img src="' + esc(p) + '" loading="lazy" alt="figure"></div>'; });
+    }
+    h += '<div class="note"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">My note</div>' +
+      '<textarea id="note" placeholder="Add your own shorthand here...">' + esc(mem.note[c.id] || "") + '</textarea></div>';
+    h += '</div>';
+    right.innerHTML = h;
+    right.scrollTop = 0;
+    var ta = $("note");
+    if (ta) ta.oninput = function () {
+      if (ta.value.trim()) mem.note[c.id] = ta.value; else delete mem.note[c.id];
+      save();
+      if (S.view === "notes") renderMid();
+      renderLeft();
+    };
+  }
+
+  /* ----------------------------- question detail ----------------------------- */
+  function renderQuiz() {
+    var q = (D.quiz || [])[S.qz];
+    if (!q) return;
+    var shown = !!S.qzOpen[S.qz];
+    var h = '<div class="inner">';
+    h += '<div class="dmeta"><span class="chip g">' + esc(semName(q.sem)) + '</span>' +
+      '<span class="chip">' + esc(q.kind) + '</span><span class="chip">' + esc(q.src) + '</span></div>';
+    h += '<h1 class="dtitle">' + esc(q.kind) + ' question</h1>';
+    h += '<div class="dbody"><p>' + esc(q.q) + '</p></div>';
+    h += '<div class="cnbox"><div class="cnhead">中文题意</div><p>' + esc(q.qcn) + '</p></div>';
+    h += '<div class="dnav"><button class="btn p" data-act="qz-ans">' +
+      (shown ? "Hide answer" : "Show answer") + '</button>' +
+      '<button class="btn" data-act="qz-copy">Copy Q + A</button></div>';
+    if (shown) {
+      h += '<div class="dbody" style="margin-top:12px"><div class="cnhead" style="margin-bottom:4px">Model answer</div>' +
+        '<p>' + esc(q.a) + '</p></div>';
+      h += '<div class="cnbox"><div class="cnhead">答题要点（中文）</div><ul>';
+      q.pts.forEach(function (p) { h += '<li>' + esc(p) + '</li>'; });
+      h += '</ul></div>';
+      if (q.refs && q.refs.length) {
+        h += '<div class="cnhead" style="margin:12px 0 4px">Source slides</div><div class="dnav">';
+        q.refs.forEach(function (r) {
+          var cc = cards[r];
+          h += '<button class="btn" data-act="card" data-i="' + r + '">' +
+            esc(semName(cc.s)) + (cc.p ? ' p' + cc.p : '') + '</button>';
+        });
+        h += '</div>';
+      }
+    } else {
+      h += '<div class="empty" style="margin-top:14px">Write your own answer first, then click <b>Show answer</b>.</div>';
+    }
+    h += '</div>';
+    right.innerHTML = h;
+    right.scrollTop = 0;
+  }
+
+  /* ----------------------------- actions ----------------------------- */
+  function openCard(i) {
+    S.open = i;
+    renderRight(); renderMid();
+  }
+  function doSearch() {
+    var q = $("q").value.trim();
+    S.q = q;
+    if (!q) { S.view = "home"; renderMid(); renderLeft(); return; }
+    var r = search(q, S.src >= 0 ? S.src : null);
+    S.results = r.list; S.ms = r.ms; S.relaxed = r.relaxed; S.view = "results"; S.sel = 0;
+    renderMid(); renderLeft();
+  }
+
+  function act(a, el) {
+    var i = el.getAttribute("data-i");
+    if (a === "src") {
+      var k = +i;
+      if (S.expanded[k]) { S.expanded[k] = false; S.view = "browse"; S.src = k; }
+      else { S.expanded[k] = true; S.view = "browse"; S.src = k; }
+      renderLeft(); renderMid(); return;
+    }
+    if (a === "card") { S.qz = null; openCard(+i); return; }
+    if (a === "quiz") { S.view = "quiz"; S.open = null; renderLeft(); renderMid(); renderRight(); return; }
+    if (a === "gloss") { S.view = "gloss"; S.qz = null; renderLeft(); renderMid(); renderRight(); return; }
+    if (a === "qz") { S.qz = +i; renderMid(); renderRight(); return; }
+    if (a === "qz-ans") { S.qzOpen[S.qz] = !S.qzOpen[S.qz]; renderRight(); return; }
+    if (a === "qz-copy") {
+      var q0 = (D.quiz || [])[S.qz];
+      if (q0) copy("[" + q0.src + "] " + q0.q + "\n\nANSWER\n" + q0.a + "\n\n中文要点\n" +
+        q0.pts.map(function (p) { return "- " + p; }).join("\n"));
+      return;
+    }
+    if (a === "term") { $("q").value = el.getAttribute("data-t"); doSearch(); $("q").focus(); return; }
+    if (a === "quick") { S.view = "quick"; S.quick = el.getAttribute("data-k"); renderLeft(); renderMid(); return; }
+    if (a === "cases") { S.view = "cases"; renderLeft(); renderMid(); return; }
+    if (a === "abbrev") { S.view = "abbrev"; renderLeft(); renderMid(); return; }
+    if (a === "star") { S.view = "star"; renderLeft(); renderMid(); return; }
+    if (a === "notes") { S.view = "notes"; renderLeft(); renderMid(); return; }
+    if (a === "toggle-star") {
+      var id = S.open;
+      if (mem.star[id]) delete mem.star[id]; else mem.star[id] = 1;
+      save(); renderRight(); renderLeft(); renderMid(); return;
+    }
+    if (a === "copy") {
+      var c = cards[S.open];
+      var txt = "[" + shortSrc(c.s) + (c.p ? " slide " + c.p : "") + "] " + (c.t || "") + "\n" +
+        ((c.it && c.it.length) ? c.it.map(function (t) { return "- " + t; }).join("\n") : c.txt);
+      copy(txt); return;
+    }
+    if (a === "prev" || a === "next") {
+      var list = currentList(), pos = -1;
+      for (var k2 = 0; k2 < list.length; k2++) if (list[k2] === S.open) pos = k2;
+      if (pos < 0) { if (list.length) openCard(list[0]); return; }
+      var np = a === "next" ? pos + 1 : pos - 1;
+      if (np >= 0 && np < list.length) openCard(list[np]);
+      return;
+    }
+    if (a === "export") {
+      var blob = new Blob([JSON.stringify(mem, null, 2)], { type: "application/json" });
+      var url = URL.createObjectURL(blob), a2 = document.createElement("a");
+      a2.href = url; a2.download = "exam-kit-marks.json"; a2.click();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      return;
+    }
+    if (a === "import") { $("fileimp").click(); return; }
+  }
+  function currentList() {
+    if (S.view === "results") return S.results.map(function (r) { return r.i; });
+    var out = [];
+    cards.forEach(function (c) {
+      if (S.src >= 0 && c.s !== S.src) return;
+      out.push(c.id);
+    });
+    return out;
+  }
+  function copy(txt) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(flash, function () { fallbackCopy(txt); });
+    } else fallbackCopy(txt);
+  }
+  function fallbackCopy(txt) {
+    var ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta); flash();
+  }
+  function flash() {
+    var b = document.querySelector('[data-act="copy"]');
+    if (!b) return;
+    var old = b.textContent; b.textContent = "Copied"; b.classList.add("p");
+    setTimeout(function () { b.textContent = old; b.classList.remove("p"); }, 900);
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-act]");
+    if (el) { act(el.getAttribute("data-act"), el); return; }
+  });
+
+  /* ----------------------------- input ----------------------------- */
+  var timer = null;
+  $("q").addEventListener("input", function () {
+    clearTimeout(timer); timer = setTimeout(doSearch, 90);
+  });
+  $("q").addEventListener("keydown", function (e) {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      var list = S.view === "results" ? S.results.map(function (r) { return r.i; }) : [];
+      if (!list.length) return;
+      S.sel = Math.max(0, Math.min(list.length - 1, S.sel + (e.key === "ArrowDown" ? 1 : -1)));
+      openCard(list[S.sel]);
+      var node = mid.querySelector('.res[data-i="' + list[S.sel] + '"]');
+      if (node) node.scrollIntoView({ block: "nearest" });
+    } else if (e.key === "Enter") {
+      if (S.results && S.results.length) openCard(S.results[0].i);
+    } else if (e.key === "Escape") {
+      $("q").value = ""; S.view = "home"; renderMid(); renderLeft();
+    }
+  });
+
+  var sel = $("src");
+  sel.innerHTML = '<option value="-1">All sources</option>' +
+    SRC.map(function (s, i) { return '<option value="' + i + '">' + esc(s.label) + '</option>'; }).join("");
+  sel.onchange = function () {
+    S.src = +sel.value;
+    if (S.q) doSearch();
+    else if (S.src >= 0) { S.view = "browse"; renderMid(); renderLeft(); }
+    else { S.view = "home"; renderMid(); renderLeft(); }
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("q").select(); $("q").focus(); }
+    if (e.key === "/" && document.activeElement !== $("q") && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+      e.preventDefault(); $("q").focus();
+    }
+  });
+
+  // deep links: #retrenchment runs a search, #c123 opens a specific card
+  var hash = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  if (/^c\d+$/.test(hash)) {
+    S.open = +hash.slice(1);
+    if (cards[S.open]) { S.view = "browse"; S.src = cards[S.open].s; }
+  } else if (hash === "quiz") { S.view = "quiz"; }
+  else if (hash === "gloss") { S.view = "gloss"; }
+  else if (/^q\d+$/.test(hash)) {
+    S.view = "quiz"; S.qz = +hash.slice(1); S.qzOpen[S.qz] = true;
+  } else if (hash) { $("q").value = hash; doSearch(); }
+
+  renderLeft(); renderMid(); renderRight();
+  window.addEventListener("hashchange", function () {
+    var h = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+    $("q").value = h;
+    if (h) doSearch(); else { S.view = "home"; renderMid(); renderLeft(); }
+  });
+})();
+</script>
+</body>
+</html>
